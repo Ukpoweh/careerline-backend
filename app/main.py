@@ -1,9 +1,11 @@
 from fastapi import FastAPI
+from app.api import recommend
 
-# Create the app
 app = FastAPI(title="CareerLine AI Backend", version="1.0")
 
-# A simple test route
+app.include_router(recommend.router)
+
 @app.get("/health")
-def health_check():
-    return {"status": "ok", "message": "CareerLine AI backend running"}
+def health():
+    return {"status": "ok"}
+
