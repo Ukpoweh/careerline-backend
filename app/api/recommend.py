@@ -17,7 +17,7 @@ def recommend(request: RecommendRequest, db: Session = Depends(get_db)):
     pathway_names = [p.name for p in pathways]
 
     # 3️⃣ Run deterministic scoring
-    raw_scores = deterministic_scores(inputs)
+    raw_scores = deterministic_scores(inputs, db)
     normalized = normalize_scores(raw_scores)
 
     # 4️⃣ Sort and get top 3

@@ -1,78 +1,93 @@
-from typing import Dict
+from typing import Dict, List
+from app.db.models import Pathway
+from sqlalchemy.orm import Session
 
-# Example pathways from your database
-PATHWAYS = ["Data Analysis", "Cybersecurity", "Software Development", "Product Management", "Digital Marketing"]
-
-def deterministic_scores(inputs: Dict) -> Dict[str, int]:
-    """Apply rule-based scoring logic."""
-    scores = {p: 0 for p in PATHWAYS}
+def deterministic_scores(inputs: Dict, db: Session) -> Dict[str, int]:
+    """Apply rule-based scoring logic dynamically to all pathways in the DB."""
+    pathways = db.query(Pathway).all()
+    scores = {p.name: 0 for p in pathways}
 
     # Personality rules
     if inputs.get("personality") == "introvert":
-        scores["Data Analysis"] += 15
-        scores["Cybersecurity"] += 15
-        scores["Software Development"] += 10
+        for name in scores:
+            if "data" in name.lower():
+                scores[name] += 15
+            if "cyber" in name.lower():
+                scores[name] += 15
+            if "software" in name.lower():
+                scores[name] += 10
+            if "machine" in name.lower():
+                scores[name] += 15
+            if "robotics" in name.lower():
+                scores[name] += 10
+
     elif inputs.get("personality") == "extrovert":
-        scores["Digital Marketing"] += 15
-        scores["Product Management"] += 15
+        for name in scores:
+            if "marketing" in name.lower():
+                scores[name] += 15
+            if "product" in name.lower():
+                scores[name] += 15
+            if "ui" in name.lower() or "ux" in name.lower():
+                scores[name] += 10
 
     # Motive rules
     motive = inputs.get("motive")
     if motive == "migration":
-        scores["Data Analysis"] += 15
-        scores["Cybersecurity"] += 15
-        scores["Software Development"] += 10
+        for name in scores:
+            if "data" in name.lower():
+                scores[name] += 10
+            if "cyber" in name.lower():
+                scores[name] += 10
+            if "software" in name.lower():
+                scores[name] += 10
+            if "machine" in name.lower():
+                scores[name] += 10
+            if "cloud" in name.lower():
+                scores[name] += 15
+
     elif motive == "side hustle":
-        scores["Digital Marketing"] += 15
-        scores["Software Development"] += 10
-    elif motive == "money-making":
-        scores["Digital Marketing"] += 15
+        for name in scores:
+            if "marketing" in name.lower():
+                scores[name] += 15
+            if "design" in name.lower():
+                scores[name] += 10
+            if "software" in name.lower():
+                scores[name] += 10
+
     elif motive == "new career":
-        scores["Software Development"] += 15
-        scores["Data Analysis"] += 10
+        for name in scores:
+            if "software" in name.lower():
+                scores[name] += 15
+            if "data" in name.lower():
+                scores[name] += 10
+            if "ai" in name.lower():
+                scores[name] += 10
+
+    elif motive == "money-making":
+        for name in scores:
+            if "marketing" in name.lower():
+                scores[name] += 15
+            if "data" in name.lower():
+                scores[name] += 10
 
     # Age rules
     age = inputs.get("age")
     if age:
-        if 18 <= age <= 25:
-            scores["Software Development"] += 10
-            scores["Data Analysis"] += 10
-        elif 26 <= age <= 40:
-            scores["Product Management"] += 10
-            scores["Data Analysis"] += 15
-        elif age > 40:
-            scores["Product Management"] += 15
-            scores["Digital Marketing"] += 10
-
-    # Present job rules
-    job = inputs.get("present_job")
-    if job and "civil" in job.lower():
-        scores["Data Analysis"] += 15
-        scores["Cybersecurity"] += 15
-    elif job and "teacher" in job.lower():
-        scores["Digital Marketing"] += 15
-        scores["Product Management"] += 10
-    elif job and "accountant" in job.lower():
-        scores["Data Analysis"] += 15
-        scores["Product Management"] += 10
-
-    # Industry rules
-    industry = inputs.get("industry")
-    if industry:
-        if "health" in industry.lower():
-            scores["Data Analysis"] += 10
-            scores["Cybersecurity"] += 10
-        elif "finance" in industry.lower():
-            scores["Data Analysis"] += 15
-            scores["Product Management"] += 10
-        elif "media" in industry.lower():
-            scores["Digital Marketing"] += 15
+        for name in scores:
+            if 18 <= age <= 25:
+                if "software" in name.lower() or "data" in name.lower():
+                    scores[name] += 10
+            elif 26 <= age <= 40:
+                if "product" in name.lower() or "data" in name.lower():
+                    scores[name] += 10
+            elif age > 40:
+                if "product" in name.lower() or "marketing" in name.lower():
+                    scores[name] += 10
 
     return scores
 
 
 def normalize_scores(scores: Dict[str, int]) -> Dict[str, int]:
-    """Normalize to a 0–100 percentage scale."""
     vals = list(scores.values())
     if not vals or max(vals) == min(vals):
         return {k: 100 for k in scores}
